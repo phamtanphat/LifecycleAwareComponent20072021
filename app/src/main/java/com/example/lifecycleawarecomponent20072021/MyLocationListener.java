@@ -16,16 +16,19 @@ import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.OnLifecycleEvent;
 
 public class MyLocationListener implements DefaultLifecycleObserver, LocationListener {
 
     Context context;
-    private OnListenLocation onListenLocation;
     private LocationManager locationManager;
-
+    MutableLiveData<Location> locationLiveData;
+    MutableLiveData<String> liveDataString;
     public MyLocationListener(Context context) {
         this.context = context;
+        locationLiveData = new MutableLiveData<>();
+        liveDataString = new MutableLiveData<>();
     }
 
 
@@ -40,9 +43,14 @@ public class MyLocationListener implements DefaultLifecycleObserver, LocationLis
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
-        if (onListenLocation != null){
-            onListenLocation.onLocationChanged(location);
-        }
+        locationLiveData.setValue(location);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                liveDataString.setValue("sadasdasdasd");
+            }
+        });
+        thread.start();
     }
 
     @Override
@@ -52,15 +60,6 @@ public class MyLocationListener implements DefaultLifecycleObserver, LocationLis
     @Override
     public void onProviderDisabled(@NonNull String provider) {
     }
-
-    interface OnListenLocation{
-        void onLocationChanged(Location location);
-    }
-
-    public void setOnListenerLocation(OnListenLocation onListenerLocation){
-        this.onListenLocation = onListenerLocation;
-    }
-
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
         locationManager.removeUpdates(this);
